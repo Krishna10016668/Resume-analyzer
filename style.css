@@ -1,0 +1,60 @@
+ /* this targets the entire page */
+ body {
+     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+     background-color: #f4f7f6;
+     /* A light grey/blue backgroud */
+     display: flex;
+     flex-direction: column;
+     /* Centers everything horizontally */
+     padding: 50px;
+ }
+
+ /* this styles the main heading */
+ h1 {
+     color: #2c3e50;
+ }
+
+ /* This styles the container for our inputs */
+ .container {
+     background: white;
+     padding: 30px;
+     border-radius: 10px;
+     /* rounded corners */
+     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+     /* A soft shadow */
+     width: 100%;
+     max-width: 600px;
+ }
+
+ /*This styles the text boxes and inputs */
+ textarea,
+ input {
+     width: 100%;
+     padding: 10px;
+     margin-top: 10px;
+     border: 1px solid #ddd;
+     border-radius: 5px;
+     box-sizing: border-box;
+     /* Ensures padding doesn't break width */
+ }
+
+ /* This styles the button */
+ button {
+     background-color: #3498db;
+     /* Professional blue */
+     color: white;
+     border: none;
+     padding: 15px 20px;
+     font-size: 16px;
+     border-radius: 5px;
+     cursor: pointer;
+     width: 100%;
+     margin-top: 20px;
+     transition: background 0.3;
+     /* Smooth color change */
+ }
+
+ /* Change color when the mouse hovers over the button */
+ button:hover {
+     background-color: #2980b9;
+ }

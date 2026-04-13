@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Gap Analyzer</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>AI Resume & Job Description Analyzer</h1>
+        <p>Upload your resume and paste the job Description to see your match score</p>
+        <label for="resumeUpload">Upload Resume (PDF):</label>
+        <br>
+        <input type="file" id="resumeUpload" accept=".PDF">
+
+        <br><br>
+
+        <label for="JobDescription">Paste Job Description:</label>
+        <br>
+        <textarea id="JobDescription" rows="10" cols="50" placeholder="paste the JobDescription here..."></textarea>
+        <br><br>
+        <button id="analyzeBtn">Analyze Gap</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
