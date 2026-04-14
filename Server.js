@@ -1,56 +1,135 @@
-// 1. Import all the necessary tools 
-const express = require('express'); //The server itself.
-const cors = require('cors'); //A security bouncer that allows your HTML page to legally talk to your new server.
-const multer = require('multer'); //Tool to catch uploaded files 
-const path = require('path');
+// 1. Modern Imports
+// UPDATE 1: Migrated from old 'require()' syntax to modern ES Modules ('import').
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import multer from 'multer';
 
-const pdf = require('pdf-parse');   // Tool to extract text from PDFs (v1.1.1)
+// UPDATE 2: Fixed the notorious Windows crash bug by explicitly targeting the library's root function file
+import pdf from 'pdf-parse/lib/pdf-parse.js';
 
-// 2. Initialize the server
+// UPDATE 3: Imported path tools to rebuild '__dirname', which doesn't exist natively in modern ESM.
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// 2. Import the Vercel AI SDK (Removed 'fallback' since we are building our own!)
+import { generateText } from 'ai';
+import { google } from '@ai-sdk/google';
+import { createGroq } from '@ai-sdk/groq';
+
+// ESM equivalent of __dirname
+// UPDATE 4: Reconstructed __dirname to allow the server to locate your frontend files.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Initialize the server
 const app = express();
 const PORT = 3000;
 
-// 3. Set up Milddlewares
+// UPDATE 5: Instructed the server to actually host your HTML, CSS, and JS files to the browser.
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(__dirname));
 
-// 4. Configure Multer to store the uploaded PDF temorarily in the computer's memory
 const upload = multer({ storage: multer.memoryStorage() });
 
-// 5. Create the exact route where the frontend will send the data
-// 'upload.single('resume')' tells the server to expect a file labeled 'resume'
+// 3. Setup Groq
+const groq = createGroq({
+    apiKey: process.env.GROQ_API_KEY,
+});
+
 app.post('/analyze', upload.single('resume'), async (req, res) => {
     try {
-        //Grab the text of the Job description from the request
         const jobDescription = req.body.jobDescription;
-
-        //Grab the actual uploaded PDF file
         const pdfFile = req.file;
 
-        //Validation: if either is missing , send an error back
         if (!pdfFile || !jobDescription) {
-            return res.status(400).send("Error: Missing resume or job description.");
+            return res.status(400).json({ error: "Missing resume or job description." });
         }
 
-        // 6.Use  pdf-parse to read the raw data of the pdf and turn it into text
-        const pdfData = await pdf(pdfFile.buffer);
-        const resumeText = pdfData.text;
+        // Extract PDF Text
+        let resumeText = "";
+        try {
+            const pdfData = await pdf(pdfFile.buffer);
+            resumeText = pdfData.text;
+        } catch (error) {
+            return res.status(500).json({ error: "Could not read PDF." });
+        }
 
-        // 7. Send a success message back to the webpage proving we read it!
+        const prompt = `
+            You are an expert technical recruiter and Applicant Tracking System (ATS).
+            Review the following Resume against the provided Job Description.
+            
+            Provide your response in this strict format:
+            GAP SCORE: [Give a percentage from 0 to 100]
+            MISSING SKILLS: [List 3 to 5 key skills missing from the resume but required by the JD]
+            SUMMARY: [A 2-sentence explanation of why you gave this score]
+
+            RESUME TEXT: 
+            ${resumeText}
+
+            JOB DESCRIPTION:
+            ${jobDescription}
+        `;
+
+        let finalAnalysis = "";
+
+        // 4. MANUAL FAILOVER ENGINE
+        // UPDATE 6: Built a custom 'try...catch' failover engine.
+        try {
+            console.log(" Attempting primary AI (Google Gemini)...");
+            const { text } = await generateText({
+                model: google('gemini-2.0-flash'), // Primary Brain
+                prompt: prompt,
+            });
+            finalAnalysis = text;
+            console.log(" Gemini succeeded!");
+
+        } catch (geminiError) {
+            console.warn(" Gemini failed! Switching to backup AI (Groq Llama 3)...");
+
+            // If Gemini crashes, it jumps straight here and Groq takes over instantly
+            const { text } = await generateText({
+                model: groq('llama-3.3-70b-versatile'), // Backup Brain
+                prompt: prompt,
+            });
+            finalAnalysis = text;
+            console.log(" Groq succeeded!");
+        }
+
+        // 5. Send the winning analysis back to the webpage
         res.json({
-            message: "Success! The backend recieved and read your PDF.",
-            extractedResumeLength: resumeText.length,
-            extractedJdLength: jobDescription.length
+            message: "Success",
+            analysis: finalAnalysis
         });
-    }
-    catch (error) {
-        console.error("Oops, error reading PDF:", error);
-        res.status(500).json({ message: "Internal Server Error. Could not read PDF." });
+
+    } catch (error) {
+        console.error("Total AI Failure:", error);
+        res.status(500).json({ error: `Both primary and backup AIs failed: ${error.message}` });
     }
 });
 
-//Turn the server on
-app.listen(PORT, () => {
-    console.log(`Backend Server is ready to catch file on http://localhost:${PORT}`);
+// Global error handlers — prevent silent crashes
+// Added global crash protections to prevent the server from dying silently in production.
+process.on('unhandledRejection', (reason, promise) => {
+    console.error(' Unhandled Rejection:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error(' Uncaught Exception:', err);
+    process.exit(1);
+});
+
+const server = app.listen(PORT, () => {
+    console.log(` High-Availability AI Server running on http://localhost:${PORT}`);
+});
+
+// UPDATE 10: Added a specific check for "Port Already in Use" errors to guide you if the server is stuck.
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(` Port ${PORT} is already in use! Kill the old process or use a different port.`);
+    } else {
+        console.error(' Server error:', err);
+    }
+    process.exit(1);
 });

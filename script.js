@@ -3,6 +3,10 @@ const analyzeBtn = document.getElementById('analyzeBtn');
 const resumeUpload = document.getElementById('resumeUpload');
 const JobDescription = document.getElementById('JobDescription');
 
+// ---> ADDED THIS LINE: We must define resultBox so JavaScript knows what to hide/show! <---
+// UPDATE 11: Defined the resultBox variable so JavaScript doesn't crash when trying to manipulate the UI.
+const resultBox = document.getElementById('resultBox');
+
 // 2. Tell the button what to do when clicked
 analyzeBtn.addEventListener('click', () => {
 
@@ -23,9 +27,13 @@ analyzeBtn.addEventListener('click', () => {
     }
 
     // Change the button state
-    analyzeBtn.innerText = "Sending to Server...";
+    analyzeBtn.innerText = "Analyzing Gap...";
     analyzeBtn.style.backgroundColor = "#e67e22";
     analyzeBtn.disabled = true;
+
+    // Hide the box and reset text while thinking
+    resultBox.style.display = 'none';
+    resultBox.style.color = "black";
 
     // 1. Create a FormData object (like a digital envelope) to hold our file and text
     const formData = new FormData();
@@ -39,8 +47,20 @@ analyzeBtn.addEventListener('click', () => {
     })
         .then(response => response.json()) // 3. Catch the server's reply
         .then(data => {
-            // 4. Show the server's reply in a popup!
-            alert(`${data.message}\n\n we successfully extracted ${data.extractedResumeLength} characters from your PDF!`);
+            // FIX: Check if the server sent an error!
+            // UPDATE 13: Added logic to catch soft 500 errors sent by our backend.
+            if (data.error) {
+                // If it's an error, print the exact diagnostic message in red text on the screen.
+                resultBox.innerText = "SERVER ERROR: " + data.error;
+                resultBox.style.color = "red"; // Make errors red
+            } else {
+                // UPDATE 15: If successful, inject the beautiful AI report dynamically into the page (no more pop-ups).
+                resultBox.innerText = data.analysis;
+                resultBox.style.color = "black";
+            }
+
+            //Make the box visible
+            resultBox.style.display = 'block';
 
             // Reset the button
             analyzeBtn.innerText = "Analyze Gap";
@@ -49,7 +69,10 @@ analyzeBtn.addEventListener('click', () => {
         })
         .catch(error => {
             console.error("Network Error:", error);
-            alert("Could not connected to the backend server. Is it running?");
+            // Created a fallback UI state if the server is completely offline or dead.
+            resultBox.innerText = "CRITICAL ERROR: Could not connect to backend.";
+            resultBox.style.display = 'block';
+            resultBox.style.color = "red";
 
             //Reset the button 
             analyzeBtn.innerText = "Analyze Gap";

@@ -1,6 +1,13 @@
 {
+  "name": "resume-gap-analyzer",
+  "version": "1.0.0",
+  "type": "module",
   "dependencies": {
+    "@ai-sdk/google": "^3.0.63",
+    "@ai-sdk/groq": "^3.0.35",
+    "ai": "^6.0.160",
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "multer": "^2.1.1",
     "pdf-parse": "^1.1.1"
