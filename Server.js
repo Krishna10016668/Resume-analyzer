@@ -16,6 +16,8 @@ import { fileURLToPath } from 'url';
 import { generateText } from 'ai';
 import { google } from '@ai-sdk/google';
 import { createGroq } from '@ai-sdk/groq';
+import { PrismaClient } from '@prisma/client';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
 // ESM equivalent of __dirname
 // UPDATE 4: Reconstructed __dirname to allow the server to locate your frontend files.
@@ -25,6 +27,10 @@ const __dirname = path.dirname(__filename);
 // Initialize the server
 const app = express();
 const PORT = 3000;
+
+// Turn on the database connection
+const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL });
+const prisma = new PrismaClient({ adapter });
 
 // UPDATE 5: Instructed the server to actually host your HTML, CSS, and JS files to the browser.
 app.use(cors());
@@ -57,13 +63,16 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
         }
 
         const prompt = `
-            You are an expert technical recruiter and Applicant Tracking System (ATS).
+           You are an expert technical recruiter and Applicant Tracking System (ATS).
             Review the following Resume against the provided Job Description.
             
             Provide your response in this strict format:
             GAP SCORE: [Give a percentage from 0 to 100]
             MISSING SKILLS: [List 3 to 5 key skills missing from the resume but required by the JD]
             SUMMARY: [A 2-sentence explanation of why you gave this score]
+            ROADMAP_30: [1-2 sentences on what to learn or do in the first 30 days to bridge the gap]
+            ROADMAP_60: [1-2 sentences on what to build or practice in days 31-60]
+            ROADMAP_90: [1-2 sentences on how to prepare for interviews for this role by day 90]
 
             RESUME TEXT: 
             ${resumeText}
@@ -97,6 +106,32 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
             console.log(" Groq succeeded!");
         }
 
+        // Extract the data and save it to our SQlite database!
+        try {
+            const scoreMatch = finalAnalysis.match(/GAP SCORE:\s*(\d+)/i);
+            const skillsMatch = finalAnalysis.match(/MISSING SKILLS:\s*([\s\S]*?)(?=SUMMARY:|$)/i);
+            const summaryMatch = finalAnalysis.match(/SUMMARY:\s*([\s\S]*?)(?=ROADMAP_30:|$)/i);
+            const rm30Match = finalAnalysis.match(/ROADMAP_30:\s*([\s\S]*?)(?=ROADMAP_60:|$)/i);
+            const rm60Match = finalAnalysis.match(/ROADMAP_60:\s*([\s\S]*?)(?=ROADMAP_90:|$)/i);
+            const rm90Match = finalAnalysis.match(/ROADMAP_90:\s*([\s\S]*)/i);
+
+            await prisma.analysis.create({
+                data: {
+                    jobDescription: jobDescription,
+                    gapScore: scoreMatch ? parseInt(scoreMatch[1]) : 0,
+                    missingSkills: skillsMatch ? skillsMatch[1].trim() : "None listed.",
+                    summary: summaryMatch ? summaryMatch[1].trim() : "No summary",
+                    roadmap30: rm30Match ? rm30Match[1].trim() : "Pending",
+                    roadmap60: rm60Match ? rm60Match[1].trim() : "Pending",
+                    roadmap90: rm90Match ? rm90Match[1].trim() : "Pending",
+                }
+            });
+            console.log("Successfully saved analysis to database!");
+        }
+        catch (dbError) {
+            console.error("Failed to save to database , but returning AI results anyway:", dbError);
+        }
+
         // 5. Send the winning analysis back to the webpage
         res.json({
             message: "Success",
@@ -106,6 +141,20 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
     } catch (error) {
         console.error("Total AI Failure:", error);
         res.status(500).json({ error: `Both primary and backup AIs failed: ${error.message}` });
+    }
+});
+
+// NEW: Fetch past analyses from the database
+app.get('/history', async (req, res) => {
+    try {
+        const pastAnalyses = await prisma.analysis.findMany({
+            orderBy: { createdAt: 'desc' }, // Get the newest ones first
+            take: 5 // Only grab the last 5 so we don't overload the frontend
+        });
+        res.json(pastAnalyses);
+    } catch (error) {
+        console.error("Database fetch error:", error);
+        res.status(500).json({ error: "Failed to fetch history." });
     }
 });
 
