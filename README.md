@@ -22,6 +22,7 @@ An intelligent, full-stack web application designed to help job seekers perfectl
 - **PostgreSQL** (Relational Database)
 - **Prisma** (Next-generation ORM)
 - **Google Gemini AI** (Core intelligent analysis engine via `@ai-sdk`)
+- **Groq AI** (Secondary ultra-fast AI engine via `@ai-sdk`)
 
 ## 🚀 Getting Started
 
@@ -31,6 +32,7 @@ Follow these steps to run the project locally on your machine.
 - Node.js (v18 or higher)
 - PostgreSQL database (or you can use SQLite locally)
 - A Google Gemini API Key
+- A Groq API Key (Optional for secondary AI engine)
 - A Clerk account for Auth keys
 
 ### 1. Clone the Repository
@@ -50,6 +52,7 @@ Create a `.env` file in the root directory with the following variables:
 PORT=3000
 DATABASE_URL="postgresql://your_db_user:your_password@localhost:5432/resume_db"
 GEMINI_API_KEY="your_gemini_api_key_here"
+GROQ_API_KEY="your_groq_api_key_here"
 ```
 
 Initialize the database:
