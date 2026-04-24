@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "npx prisma generate && npx prisma db push",
-    "start": "node server.js",
-    "postinstall": "npx prisma generate"
+    "build": "node node_modules/prisma/build/index.js generate && node node_modules/prisma/build/index.js db push",
+    "start": "node server.js"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.63",
