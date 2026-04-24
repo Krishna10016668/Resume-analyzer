@@ -59,12 +59,6 @@ export default function HistoryTab({ userId }) {
         <input className="search-bar" placeholder="Search by role or company..." value={search} onChange={e => setSearch(e.target.value)} />
       </div>
 
-      {/* Filters button */}
-      <button style={{width:'100%',background:'var(--bg-secondary)',border:'1px solid var(--border-card)',borderRadius:12,padding:'10px 16px',color:'var(--text-secondary)',fontSize:13,fontWeight:600,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:6,marginBottom:24,transition:'all 0.2s'}}>
-        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg>
-        FILTERS
-      </button>
-
       {/* States */}
       {loading && <div style={{textAlign:'center',padding:'60px 0',color:'var(--text-muted)'}}>Loading history...</div>}
       {error && <div style={{background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:12,padding:14}}><p style={{color:'var(--accent-red)',fontSize:13,fontWeight:600,margin:0}}>{error}</p></div>}
