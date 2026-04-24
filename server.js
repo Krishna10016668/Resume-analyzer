@@ -28,7 +28,7 @@ const app = express();
 const PORT = 3000;
 
 // Turn on the database connection
-const prisma = new PrismaClient({ url: process.env.DATABASE_URL });
+const prisma = new PrismaClient();
 
 // UPDATE 5: Instructed the server to actually host your HTML, CSS, and JS files to the browser.
 app.use(cors());
