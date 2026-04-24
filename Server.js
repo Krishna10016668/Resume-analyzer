@@ -47,6 +47,7 @@ const groq = createGroq({
 app.post('/analyze', upload.single('resume'), async (req, res) => {
     try {
         const jobDescription = req.body.jobDescription;
+        const userId = req.body.userId || '';
         const pdfFile = req.file;
 
         if (!pdfFile || !jobDescription) {
@@ -117,6 +118,7 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
 
             await prisma.analysis.create({
                 data: {
+                    userId: userId,
                     jobDescription: jobDescription,
                     gapScore: scoreMatch ? parseInt(scoreMatch[1]) : 0,
                     missingSkills: skillsMatch ? skillsMatch[1].trim() : "None listed.",
@@ -147,9 +149,14 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
 // NEW: Fetch past analyses from the database
 app.get('/history', async (req, res) => {
     try {
+        const userId = req.query.userId;
+        if (!userId) {
+            return res.status(400).json({ error: "userId is required." });
+        }
         const pastAnalyses = await prisma.analysis.findMany({
-            orderBy: { createdAt: 'desc' }, // Get the newest ones first
-            take: 5 // Only grab the last 5 so we don't overload the frontend
+            where: { userId: userId },
+            orderBy: { createdAt: 'desc' },
+            take: 20
         });
         res.json(pastAnalyses);
     } catch (error) {
