@@ -50,7 +50,7 @@ export default function HistoryTab({ userId }) {
     <div className="animate-fade-in-up stagger-children" style={{paddingTop:8}}>
       <h1 style={{fontSize:32,fontWeight:800,margin:'0 0 8px'}}>Scan History</h1>
       <p style={{color:'var(--text-secondary)',fontSize:14,margin:'0 0 24px',lineHeight:1.6}}>
-        Review past curriculum vitae analyses, alignment scores, and expert recommendations.
+        Review past curriculum vitae analysis, alignment scores, and expert recommendations.
       </p>
 
       {/* Search */}
@@ -71,7 +71,7 @@ export default function HistoryTab({ userId }) {
       {!loading && !error && filtered.length === 0 && (
         <div style={{textAlign:'center',padding:'60px 0',color:'var(--text-muted)'}}>
           <svg width="48" height="48" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" viewBox="0 0 24 24" style={{marginBottom:12,opacity:0.5}}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          <p style={{fontWeight:600}}>No analyses found</p>
+          <p style={{fontWeight:600}}>No analysis found</p>
           <p style={{fontSize:13}}>Run your first scan to see results here.</p>
         </div>
       )}
