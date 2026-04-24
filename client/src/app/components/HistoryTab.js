@@ -50,7 +50,7 @@ export default function HistoryTab({ userId }) {
     <div className="animate-fade-in-up stagger-children" style={{paddingTop:8}}>
       <h1 style={{fontSize:32,fontWeight:800,margin:'0 0 8px'}}>Scan History</h1>
       <p style={{color:'var(--text-secondary)',fontSize:14,margin:'0 0 24px',lineHeight:1.6}}>
-        Review past curriculum vitae analysis, alignment scores, and expert recommendations.
+        Review your past resume scans, alignment scores, and expert recommendations.
       </p>
 
       {/* Search */}
