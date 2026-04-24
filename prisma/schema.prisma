@@ -3,9 +3,9 @@ generator client {
   provider =  "prisma-client-js"
 }
 
-// we are using SQLite for local development (will be PostgreSQL in prod)
+// we are using PostgreSQL for production (provided by Render/Neon)
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 // our Database Tables -

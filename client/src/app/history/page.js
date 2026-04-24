@@ -13,7 +13,8 @@ export default function HistoryPage() {
     if (!user?.id) return;
     const fetchHistory = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/history?userId=${encodeURIComponent(user.id)}`);
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const res = await fetch(`${API_URL}/history?userId=${encodeURIComponent(user.id)}`);
         if (!res.ok) throw new Error("Network error");
         setHistory(await res.json());
       } catch { setError("Could not connect to the database. Is the backend running?"); }

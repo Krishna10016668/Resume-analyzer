@@ -17,7 +17,6 @@ import { generateText } from 'ai';
 import { google } from '@ai-sdk/google';
 import { createGroq } from '@ai-sdk/groq';
 import { PrismaClient } from '@prisma/client';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
 // ESM equivalent of __dirname
 // UPDATE 4: Reconstructed __dirname to allow the server to locate your frontend files.
@@ -29,8 +28,7 @@ const app = express();
 const PORT = 3000;
 
 // Turn on the database connection
-const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient({ url: process.env.DATABASE_URL });
 
 // UPDATE 5: Instructed the server to actually host your HTML, CSS, and JS files to the browser.
 app.use(cors());

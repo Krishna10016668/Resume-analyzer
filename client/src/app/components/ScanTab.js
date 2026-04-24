@@ -24,7 +24,8 @@ export default function ScanTab({ userId, onResult }) {
     formData.append("jobDescription", jobDescription);
     formData.append("userId", userId);
     try {
-      const response = await fetch("http://localhost:3000/analyze", { method: "POST", body: formData });
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${API_URL}/analyze`, { method: "POST", body: formData });
       const data = await response.json();
       if (data.error) { setError(`SERVER ERROR: ${data.error}`); }
       else {

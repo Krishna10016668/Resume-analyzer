@@ -2,6 +2,9 @@
   "name": "resume-gap-analyzer",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "@ai-sdk/google": "^3.0.63",
     "@ai-sdk/groq": "^3.0.35",
