@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.63",
@@ -16,9 +17,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "multer": "^2.1.1",
-    "pdf-parse": "^1.1.1"
-  },
-  "devDependencies": {
+    "pdf-parse": "^1.1.1",
     "prisma": "^7.7.0"
   }
 }
