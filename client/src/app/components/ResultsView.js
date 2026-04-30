@@ -1,6 +1,9 @@
 "use client";
+import { useState } from "react";
 
 export default function ResultsView({ result, onBack, onSave }) {
+  const [shareToast, setShareToast] = useState(null);
+
   if (!result) return null;
   const score = result.score;
   const circumference = 2 * Math.PI * 70;
@@ -11,8 +14,47 @@ export default function ResultsView({ result, onBack, onSave }) {
   // Parse skills into list items
   const skillsList = result.skills.split(/\n|,|•|·|-(?=\s)|\d+\.\s/).map(s => s.trim()).filter(s => s.length > 3);
 
+  const showToast = (msg) => {
+    setShareToast(msg);
+    setTimeout(() => setShareToast(null), 2500);
+  };
+
+  const handleShare = async () => {
+    const shareText = `📄 Resume Analysis Result\n\n🎯 Match Score: ${score}% — ${scoreLabel}\n\n📝 Summary:\n${result.summary}\n\nAnalyzed with Expert Analyzer`;
+    const shareData = {
+      title: "Resume Analysis Result",
+      text: shareText,
+    };
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        showToast("Shared! ✓");
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          await copyToClipboard(shareText);
+        }
+      }
+    } else {
+      await copyToClipboard(shareText);
+    }
+  };
+
+  const copyToClipboard = async (text) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast("Copied to clipboard! ✓");
+    } catch {
+      showToast("Unable to copy ✗");
+    }
+  };
+
   return (
     <div className="animate-fade-in-up stagger-children" style={{paddingTop:8}}>
+      {shareToast && (
+        <div style={{position:'fixed',top:20,right:20,background:'var(--bg-card)',padding:'10px 20px',borderRadius:8,boxShadow:'0 4px 12px rgba(0,0,0,0.2)',zIndex:1000,fontSize:13,fontWeight:600,color:'var(--accent-cyan)',border:'1px solid var(--accent-cyan)'}}>
+          {shareToast}
+        </div>
+      )}
       {/* Header */}
       <div style={{marginBottom:4}}>
         <h1 style={{fontSize:28,fontWeight:800,margin:'0 0 4px'}}>Analysis Complete</h1>
@@ -21,7 +63,7 @@ export default function ResultsView({ result, onBack, onSave }) {
 
       {/* Action Buttons */}
       <div style={{display:'flex',gap:10,marginBottom:28,marginTop:16}}>
-        <button className="btn-secondary" style={{fontSize:12,padding:'8px 14px'}}>
+        <button className="btn-secondary" onClick={handleShare} style={{fontSize:12,padding:'8px 14px'}}>
           <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
           Share
         </button>
