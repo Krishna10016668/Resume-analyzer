@@ -12,9 +12,9 @@ import pdf from 'pdf-parse/lib/pdf-parse.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// 2. Import the Vercel AI SDK (Removed 'fallback' since we are building our own!)
+// 2. Import the Vercel AI SDK
 import { generateText } from 'ai';
-import { google } from '@ai-sdk/google';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createGroq } from '@ai-sdk/groq';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -41,7 +41,11 @@ app.use(express.static(__dirname));
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// 3. Setup Groq
+// 3. Setup AI Providers
+const google = createGoogleGenerativeAI({
+    apiKey: process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY,
+});
+
 const groq = createGroq({
     apiKey: process.env.GROQ_API_KEY,
 });
@@ -91,22 +95,22 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
         let finalAnalysis = "";
 
         // 4. MANUAL FAILOVER ENGINE
-        // UPDATE 6: Built a custom 'try...catch' failover engine.
+        // Custom failover engine: primary Google Gemini, backup Groq
         try {
             console.log(" Attempting primary AI (Google Gemini)...");
             const { text } = await generateText({
-                model: google('gemini-2.0-flash'), // Primary Brain
+                model: google('gemini-3.6-flash'), // Primary Brain
                 prompt: prompt,
             });
             finalAnalysis = text;
             console.log(" Gemini succeeded!");
 
         } catch (geminiError) {
-            console.warn(" Gemini failed! Switching to backup AI (Groq Llama 3)...");
+            console.warn(" Gemini failed! Switching to backup AI (Groq)...", geminiError.message || geminiError);
 
-            // If Gemini crashes, it jumps straight here and Groq takes over instantly
+            // If Gemini fails, Groq takes over instantly
             const { text } = await generateText({
-                model: groq('llama-3.3-70b-versatile'), // Backup Brain
+                model: groq('openai/gpt-oss-120b'), // Backup Brain
                 prompt: prompt,
             });
             finalAnalysis = text;
