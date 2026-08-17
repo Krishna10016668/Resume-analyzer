@@ -49,8 +49,12 @@ const groq = createGroq({
 app.post('/analyze', upload.single('resume'), async (req, res) => {
     try {
         const jobDescription = req.body.jobDescription;
-        const userId = req.body.userId || '';
+        const userId = req.body.userId?.trim();
         const pdfFile = req.file;
+
+        if (!userId) {
+            return res.status(401).json({ error: "Authentication required. Please sign in to analyze resumes." });
+        }
 
         if (!pdfFile || !jobDescription) {
             return res.status(400).json({ error: "Missing resume or job description." });
@@ -151,9 +155,9 @@ app.post('/analyze', upload.single('resume'), async (req, res) => {
 // NEW: Fetch past analyses from the database
 app.get('/history', async (req, res) => {
     try {
-        const userId = req.query.userId;
+        const userId = req.query.userId?.trim();
         if (!userId) {
-            return res.status(400).json({ error: "userId is required." });
+            return res.status(401).json({ error: "Authentication required. Please sign in to view history." });
         }
         const pastAnalyses = await prisma.analysis.findMany({
             where: { userId: userId },

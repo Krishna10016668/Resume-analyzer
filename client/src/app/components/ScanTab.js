@@ -16,6 +16,7 @@ export default function ScanTab({ userId, onResult }) {
   };
 
   const handleAnalyze = async () => {
+    if (!userId) { setError("Authentication required. Please sign in to analyze resumes."); return; }
     if (!file) { setError("Please upload a PDF resume first."); return; }
     if (!jobDescription.trim()) { setError("Please paste a job description."); return; }
     setError(""); setLoading(true);

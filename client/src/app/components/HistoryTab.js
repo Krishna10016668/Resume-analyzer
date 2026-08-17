@@ -9,11 +9,19 @@ export default function HistoryTab({ userId }) {
   const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
-    if (!userId) { setLoading(false); return; }
+    if (!userId) {
+      setLoading(false);
+      setError("Please log in to view your scan history.");
+      return;
+    }
     const fetchHistory = async () => {
       try {
         const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
         const res = await fetch(`${API_URL}/history?userId=${encodeURIComponent(userId)}`);
+        if (res.status === 401) {
+          setError("Authentication required. Please sign in.");
+          return;
+        }
         if (!res.ok) throw new Error("Network error");
         setHistory(await res.json());
       } catch { setError("Could not connect to database. Is the backend running?"); }
